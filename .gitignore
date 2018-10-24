@@ -9,6 +9,10 @@ ehthumbs.db
 Thumbs.db
 *~
 
+# IDE files #
+#############
+.idea/*
+
 # Project config files #
 ########################
 
@@ -22,6 +26,7 @@ config.php
 /core/json/pokestop.stats.json
 /core/json/pokedex.rarity.json
 /core/json/pokedex.counts.json
+/core/json/pokedex.raids.json
 /core/json/captcha.stats.json
 /core/json/nests.stats.json
 analyticstracking.php

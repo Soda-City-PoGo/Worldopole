@@ -57,42 +57,7 @@ include_once('core/process/data.loader.php');
 						}
 
 						foreach ($config->menu as $menu) {
-							if (isset($menu->locale)) {
-								$locale = $menu->locale;
-								$text	= $locales->$locale;
-							} elseif (isset($menu->text)) {
-								$text	= $menu->text;
-							}
-
-							switch ($menu->type) {
-								case 'link':
-									?>
-
-									<li>
-										<a href="<?= $menu->href ?>" class="menu-label"><i class="fa <?= $menu->icon ?>" aria-hidden="true"></i> <?= $text ?></a>
-									</li>
-
-									<?php
-									break;
-
-								case 'link_external':
-									?>
-
-									<li>
-										<a href="<?= $menu->href ?>" target="_blank" class="menu-label"><i class="fa <?= $menu->icon ?>" aria-hidden="true"></i> <?= $menu->text ?></a>
-									</li>
-
-									<?php
-									break;
-
-								case 'html':
-									?>
-
-									<li> <?= $menu->value ?> </li>
-
-									<?php
-									break;
-							}
+							printMenuitems($menu, 1, $locales);
 						}
 						?>
 
@@ -147,6 +112,7 @@ include_once('core/process/data.loader.php');
 			<script>
 				updateCounter(<?= $home->pokemon_now ?>,'.total-pkm-js');
 				updateCounter(<?= $home->pokestop_lured ?>,'.total-lure-js');
+				updateCounter(<?= $home->active_raids ?>,'.total-raids-js');
 				updateCounter(<?= $home->gyms ?>,'.total-gym-js');
 
 				updateCounter(<?= $home->teams->valor ?>,'.total-valor-js');
@@ -169,7 +135,7 @@ include_once('core/process/data.loader.php');
 					<script>
 						var pokemon_id = <?= $pokemon_id ?>;
 					</script>
-					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap"></script>
+					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap&v=3"></script>
 
 					<?php
 					break;
@@ -178,7 +144,7 @@ include_once('core/process/data.loader.php');
 					?>
 
 					<script src="<?php auto_ver('core/js/pokestops.maps.js') ?>"></script>
-					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap"></script>
+					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap&v=3"></script>
 
 					<?php
 					break;
@@ -199,7 +165,7 @@ include_once('core/process/data.loader.php');
 					</script>
 
 					<script src="<?php auto_ver('core/js/gym.maps.js') ?>"></script>
-					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap"></script>
+					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap&v=3"></script>
 
 					<?php
 					break;
@@ -248,7 +214,7 @@ include_once('core/process/data.loader.php');
 
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.countdown/2.2.0/jquery.countdown.min.js"></script>
 					<script src="core/js/nests.maps.js.php"></script>
-					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap"></script>
+					<script src="https://maps.googleapis.com/maps/api/js?key=<?= $config->system->GMaps_Key ?>&libraries=visualization&callback=initMap&v=3"></script>
 
 					<?php
 					break;
@@ -258,6 +224,14 @@ include_once('core/process/data.loader.php');
 
 					<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.countdown/2.2.0/jquery.countdown.min.js"></script>
 					<script src="<?php auto_ver('core/js/raids.content.js') ?>"></script>
+
+					<?php
+					break;
+
+				case 'gymhistory':
+					?>
+
+					<script src="<?php auto_ver('core/js/gymhistory.content.js') ?>"></script>
 
 					<?php
 					break;

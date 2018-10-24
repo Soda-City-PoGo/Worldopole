@@ -38,7 +38,8 @@ a {
 		border-top-left-radius: 3px;
 		border-top-right-radius: 3px;
 	}
-	.form-group:last-child .form-control {
+	.form-group:last-child
+	.form-control {
 		border-bottom-right-radius: 3px;
 		border-bottom-left-radius: 3px;
 		top: -2px;
@@ -78,12 +79,69 @@ Navigation
 	animation-iteration-count: 3;
 }
 
-.navbar-default .navbar-nav>li>a:focus, .navbar-default .navbar-nav>li>a:hover {
-	color:#174391;
+.navbar-default .navbar-nav>li>a { 
+	color: #777777 !important;
+}
+
+.navbar-default .navbar-nav>li>a:focus { 
+	color: #777777;
+}
+
+.navbar-default .navbar-nav>li>a:hover {
+	color: #173491 !important;
 }
 
 .navbar-default .navbar-brand {
-	color:#174391;
+	color: #777777 !important;
+}
+
+.navbar-default .navbar-brand>li>a:hover {
+	color: #173491	!important;
+}
+
+.navbar-nav li .dropdown{
+	padding: 0 15px;
+}
+	
+.navbar-nav li .dropdown li{
+	list-style-type: none;
+	list-style-image: none;
+	display: block;
+	width: 100%;
+	padding: 3px 12px;
+	text-decoration: none !important;
+}
+
+.navbar-nav li .dropdown li a{
+	display: block;
+	padding: 3px 12px;
+	color: #777777 !important;
+}
+
+.navbar-nav li .dropdown li a:hover{
+	text-decoration: none;
+	color: #173491 !important;
+	background-color: #fff;
+}
+
+@media (min-width: 768px) {
+	
+	.navbar-nav li .dropdown{
+		position: absolute;
+		top: 50px;
+		background-color: #fff;
+		border: 1px solid #ccc;
+		border-top: none;
+		padding: 10px 0 15px;
+		min-width: 200px;
+		left: -20px;
+		display: none;
+	}
+	
+	.navbar-nav li:hover .dropdown{
+		display: block;
+	}
+	
 }
 
 /****************
@@ -111,6 +169,28 @@ Homepage
 	font-weight: 100;
 	margin-top:0.5em;
 	text-align:center;
+}
+
+.flex-container-homepage {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+}
+
+.flex-item-homepage {
+    -webkit-flex: 1 auto;
+    flex: 1 0 200px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid #f5f5f5;
+}
+
+.flex-item-homepage:last-child {
+    border-right: 0px;
 }
 
 /****************
@@ -148,6 +228,10 @@ img.unseen{
 	-webkit-filter: grayscale(1);
 	filter: grayscale(1);
 	opacity:0.5;
+}
+
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+    padding: 8px 6px;
 }
 
 .pokemon-single a:hover img	 {
@@ -221,6 +305,38 @@ Pokémon single pages
 .stats-data big {
 	font-size:3em;
 	font-weight:bold;
+}
+
+
+/****************
+Tree display
+****************/
+
+.flex-container-tree {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+}
+
+.flex-item-tree {
+	-webkit-flex: 100%;
+	flex: 1 0 100px;
+	padding-bottom: 15px;
+	padding-top: 10px;
+	margin-bottom: 15px;
+	margin-top: 10px;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+}
+
+.flex-item-tree img {
+	display: inline-block;
+	max-width:90px;
 }
 
 /****************
@@ -427,11 +543,18 @@ div#levelMeter .progress{
 
 div#gymPrestige{
 	position: absolute;
-	left:120px;
+	left: 120px;
 	top: 70px;
 	font-size: 14px;
-	
 }
+
+div#gymHistory{
+	position: absolute;
+	left: 220px;
+	top: 70px;
+	font-size: 14px;
+}
+
 div#gymLastScanned{
 	position: absolute;
 	left:120px;
@@ -458,11 +581,11 @@ trainers details styles
 trainers search styles
 ****************/
 
-#searchTrainer button {
+#searchTrainer button, #searchGyms button {
 	height: 40px;
 }
 
-#searchTrainer input {
+#searchTrainer input, #searchGyms input {
 	height: 40px;
 }
 
@@ -502,8 +625,8 @@ raids styles
 	font-size: 2em;
 	font-weight: bold;
 	position: absolute;
-	left: 23px;
-	top: 10px;
+	left: 22px;
+	top: 8px;
 }
 
 #raidsContainer .current, #raidsContainer .upcoming {
@@ -537,13 +660,77 @@ raids styles
 	}
 	#raidsContainer .pokemon-single span {
 		font-size: 1.5em;
-		left: 17px;
-		top: 8px;
+		left: 16px;
+		top: 6px;
 	}
 	#raidsContainer td:nth-child(6) {
 		display: none;
 	}
-	#raidsTable>tbody>tr>td, #raidsTable>tbody>tr>th, #raidsTable>tfoot>tr>td, #raidsTable>tfoot>tr>th, #raidsTable>thead>tr>td, #raidsTable>thead>tr>th {
-		padding: 6px
+}
+
+#gymsContainer td {
+	vertical-align: middle;
+	line-height: 2em;
+}
+
+#gymsContainer .gymhistory table td:first-child, #gymsContainer .gymhistory table th:first-child {
+	padding-left: 10px;
+}
+
+#gymsContainer td.level {
+	width: 68px;
+}
+
+#gymsContainer td.level img {
+	margin-right: .5em;
+}
+
+#gymsContainer td.loss {
+	color: rgb(210,118,118);
+}
+
+#gymsContainer td.gain {
+	color: rgb(62,150,62);
+}
+
+#gymsContainer td ul {
+	margin-bottom: 0;
+	min-height: 65px;
+	line-height: initial;
+}
+
+#gymsContainer td ul li {
+	width: 5em;
+	overflow: hidden;
+	text-align: center;
+	border-radius: 5px;
+	margin-right: 2px;
+}
+
+#gymsTable > thead > tr > th:nth-child(1) {
+	width: 6.5em;
+}
+
+@media (max-width: 768px) {
+	#gymsContainer td ul li {
+		display: none;
 	}
+	#gymsTable > thead > tr > th:last-child, #gymsTable > tbody > tr:nth-child(2n-1) > td:last-child {
+		display: none;
+	}
+}
+
+#gymsContainer td ul li.new {
+	background-color: rgba(62,150,62,.25);
+	display: inline-block !important;
+}
+
+#gymsContainer td ul li.old {
+	background-color: rgba(210,118,118,.25);
+	display: inline-block !important;
+}
+
+.no-link {
+	text-decoration: none;
+	color: inherit;
 }

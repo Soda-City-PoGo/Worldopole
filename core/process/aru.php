@@ -79,6 +79,15 @@ switch ($request) {
 		$values[] = $data->total;
 
 
+		// Active Raids
+		// -----------
+
+		$req = "SELECT COUNT(*) AS total FROM raid WHERE start <= UTC_TIMESTAMP AND  end >= UTC_TIMESTAMP()";
+		$result = $mysqli->query($req);
+		$data = $result->fetch_object();
+
+		$values[] = $data->total;
+
 
 		// Team battle
 		// -----------
@@ -196,7 +205,7 @@ switch ($request) {
 
 				$html = '
 			    <div class="col-md-1 col-xs-4 pokemon-single" data-pokeid="'.$pokeid.'" data-pokeuid="'.$pokeuid.'" style="display: none;">
-				<a href="pokemon/'.$pokeid.'"><img src="core/pokemons/'.$pokeid.$config->system->pokeimg_suffix.'" alt="'.$pokemons->pokemon->$pokeid->name.'" class="img-responsive"></a>
+				<a href="pokemon/'.$pokeid.'"><img src="'.$pokemons->pokemon->$pokeid->img.'" alt="'.$pokemons->pokemon->$pokeid->name.'" class="img-responsive"></a>
 				<a href="pokemon/'.$pokeid.'"><p class="pkmn-name">'.$pokemons->pokemon->$pokeid->name.'</p></a>
 				<a href="'.$location_link.'" target="_blank">
 					<small class="pokemon-timer">00:00:00</small>
@@ -282,15 +291,8 @@ switch ($request) {
 
 	case 'pokestop':
 		$where = "";
-		if ($config->system->only_lured_pokestops) {
-			$where = "WHERE lure_expiration > UTC_TIMESTAMP() ORDER BY lure_expiration";
-		}
-		$req = "SELECT latitude, longitude, lure_expiration, UTC_TIMESTAMP() AS now, (CONVERT_TZ(lure_expiration, '+00:00', '".$time_offset."')) AS lure_expiration_real FROM pokestop ".$where."";
+		$req = "SELECT latitude, longitude, lure_expiration, UTC_TIMESTAMP() AS now, (CONVERT_TZ(lure_expiration, '+00:00', '".$time_offset."')) AS lure_expiration_real FROM pokestop ";
 
-		//show all stops if no lure active
-		if (!$mysqli->query($req)->fetch_object()) {
-			$req = "SELECT latitude, longitude, lure_expiration, UTC_TIMESTAMP() AS now, (CONVERT_TZ(lure_expiration, '+00:00', '".$time_offset."')) AS lure_expiration_real FROM pokestop";
-		}
 		$result = $mysqli->query($req);
 
 		$pokestops = [];
@@ -299,16 +301,19 @@ switch ($request) {
 			if ($data->lure_expiration >= $data->now) {
 				$icon = 'pokestap_lured.png';
 				$text = sprintf($locales->POKESTOPS_MAP_LURED, date('H:i:s', strtotime($data->lure_expiration_real)));
+				$lured = true;
 			} else {
 				$icon = 'pokestap.png';
 				$text = $locales->POKESTOPS_MAP_REGULAR;
+				$lured = false;
 			}
 
 			$pokestops[] = [
 				$text,
 				$icon,
 				$data->latitude,
-				$data->longitude
+				$data->longitude,
+				$lured
 			];
 		}
 
@@ -456,11 +461,12 @@ switch ($request) {
 		while ($data = $result->fetch_object()) {
 			$gymData['gymDetails']['pokemons'][] = $data;
 			if ($data != false) {
+				$pokemon_id = $data->pokemon_id;
 				if ($config->system->iv_numbers) {
 					$gymData['infoWindow'] .= '
 					<div style="text-align: center; width: 50px; display: inline-block; margin-right: 3px">
 						<a href="pokemon/'.$data->pokemon_id.'">
-						<img src="core/pokemons/'.$data->pokemon_id.$config->system->pokeimg_suffix.'" height="50" style="display:inline-block" >
+						<img src="'.$pokemons->pokemon->$pokemon_id->img.'" height="50" style="display:inline-block" >
 						</a>
 						<p class="pkmn-name">'.$data->cp.'</p>
 						<div class="progress" style="height: 12px; margin-bottom: 0">
@@ -479,7 +485,7 @@ switch ($request) {
 					$gymData['infoWindow'] .= '
 					<div style="text-align: center; width: 50px; display: inline-block; margin-right: 3px">
 						<a href="pokemon/'.$data->pokemon_id.'">
-						<img src="core/pokemons/'.$data->pokemon_id.$config->system->pokeimg_suffix.'" height="50" style="display:inline-block" >
+						<img src="'.$pokemons->pokemon->$pokemon_id->img.'" height="50" style="display:inline-block" >
 						</a>
 						<p class="pkmn-name">'.$data->cp.'</p>
 						<div class="progress" style="height: 4px; width: 40px; margin-bottom: 10px; margin-top: 2px; margin-left: auto; margin-right: auto">
@@ -496,10 +502,11 @@ switch ($request) {
 					</div>'
 						; }
 			} else {
+				$pokemon_id = $gymData['gymDetails']['gymInfos']['guardPokemonId'];
 				$gymData['infoWindow'] .= '
 				<div style="text-align: center; width: 50px; display: inline-block; margin-right: 3px">
 					<a href="pokemon/'.$gymData['gymDetails']['gymInfos']['guardPokemonId'].'">
-					<img src="core/pokemons/'.$gymData['gymDetails']['gymInfos']['guardPokemonId'].$config->system->pokeimg_suffix.'" height="50" style="display:inline-block" >
+					<img src="'.$pokemons->pokemon->$pokemon_id->img.'" height="50" style="display:inline-block" >
 					</a>
 					<p class="pkmn-name">???</p>
 				</div>'
@@ -524,10 +531,11 @@ switch ($request) {
 			$gymData['gymDetails']['gymInfos']['team'] = $data->team_id;
 			$gymData['gymDetails']['gymInfos']['guardPokemonId'] = $data->guard_pokemon_id;
 
+			$pokemon_id = $data->guard_pokemon_id;
 			$gymData['infoWindow'] .= '
 				<div style="text-align: center; width: 50px; display: inline-block; margin-right: 3px">
 					<a href="pokemon/'.$data->guard_pokemon_id.'">
-					<img src="core/pokemons/'.$data->guard_pokemon_id.$config->system->pokeimg_suffix.'" height="50" style="display:inline-block" >
+					<img src="'.$pokemons->pokemon->$pokemon_id->img.'" height="50" style="display:inline-block" >
 					</a>
 					<p class="pkmn-name">???</p>
 				</div>';
@@ -694,6 +702,156 @@ switch ($request) {
 		echo json_encode($json);
 
 		break;
+
+
+	case 'gyms':
+		$page = '0';
+		$where = '';
+		$order = '';
+		$ranking = 0;
+		if (isset($_GET['name']) && $_GET['name'] != '') {
+			$gym_name = mysqli_real_escape_string($mysqli, $_GET['name']);
+			$where = " WHERE name LIKE '%".$gym_name."%'";
+		}
+		if (isset($_GET['team']) && $_GET['team'] != '') {
+			$team = mysqli_real_escape_string($mysqli, $_GET['team']);
+			$where .= ($where == "" ? " WHERE" : " AND")." team_id = ".$team;
+		}
+		if (isset($_GET['page'])) {
+			$page = mysqli_real_escape_string($mysqli, $_GET['page']);
+		}
+		if (isset($_GET['ranking'])) {
+			$ranking = mysqli_real_escape_string($mysqli, $_GET['ranking']);
+		}
+
+		switch ($ranking) {
+			case 1:
+				$order = " ORDER BY name, last_modified DESC";
+				break;
+			case 2:
+				$order = " ORDER BY total_cp DESC, last_modified DESC";
+				break;
+			default:
+				$order = " ORDER BY last_modified DESC, name";
+		}
+
+		$limit = " LIMIT ".($page * 10).",10";
+
+		$req = "SELECT gymdetails.gym_id, name, team_id, total_cp, (6 - slots_available) as pokemon_count, (CONVERT_TZ(last_modified, '+00:00', '".$time_offset."')) as last_modified
+				FROM gymdetails
+				LEFT JOIN gym
+				ON gymdetails.gym_id = gym.gym_id
+				".$where.$order.$limit;
+
+		$result = $mysqli->query($req);
+		$gyms = array();
+		while ($result && $data = $result->fetch_object()) {
+			$pkm = array();
+			if ($data->total_cp > 0) {
+				$pkm_req = "SELECT DISTINCT gymmember.pokemon_uid, pokemon_id, cp, trainer_name
+							FROM gymmember
+							LEFT JOIN gympokemon
+							ON gymmember.pokemon_uid = gympokemon.pokemon_uid
+							WHERE gymmember.gym_id = '". $data->gym_id ."'
+							ORDER BY deployment_time";
+				$pkm_result = $mysqli->query($pkm_req);
+				while ($pkm_result && $pkm_data = $pkm_result->fetch_object()) {
+					$pkm[] = $pkm_data;
+				}
+			}
+			$data->pokemon = $pkm;
+			unset($data->pokemon_uids);
+			$data->gym_id = str_replace('.', '_', $data->gym_id);
+			$gyms[] = $data;
+		}
+		$json = array();
+		$json['gyms'] = $gyms;
+		$locale = array();
+		$json['locale'] = $locale;
+
+		header('Content-Type: application/json');
+		echo json_encode($json);
+
+		break;
+
+
+	case 'gymhistory':
+		$gym_id = '';
+		$page = '0';
+		if (isset($_GET['gym_id'])) {
+			$gym_id = mysqli_real_escape_string($mysqli, $_GET['gym_id']);
+			$gym_id = str_replace('_', '.', $gym_id);
+		}
+		if (isset($_GET['page'])) {
+			$page = mysqli_real_escape_string($mysqli, $_GET['page']);
+		}
+
+		$entries = array();
+
+		if ($gym_id != '') {
+			$req = "SELECT gym_id, team_id, total_cp, pokemon_uids, pokemon_count, (CONVERT_TZ(last_modified, '+00:00', '".$time_offset."')) as last_modified
+					FROM gymhistory
+					WHERE gym_id='".$gym_id."'
+					ORDER BY last_modified DESC
+					LIMIT ".($page * 10).",11";
+
+			$result = $mysqli->query($req);
+			while ($result && $data = $result->fetch_object()) {
+				$pkm = array();
+				if ($data->total_cp == 0) { $data->pokemon_uids = ''; }
+				if ($data->pokemon_uids != '') {
+					$pkm_uids = explode(',', $data->pokemon_uids);
+					$pkm_req = "SELECT DISTINCT pokemon_uid, pokemon_id, cp, trainer_name
+								FROM gympokemon
+								WHERE pokemon_uid IN ('".implode("','", $pkm_uids)."')
+								ORDER BY FIND_IN_SET(pokemon_uid, '".implode(",", $pkm_uids)."')";
+					$pkm_result = $mysqli->query($pkm_req);
+					while ($pkm_result && $pkm_data = $pkm_result->fetch_object()) {
+						$pkm[$pkm_data->pokemon_uid] = $pkm_data;
+					}
+				}
+				$data->pokemon = $pkm;
+				$data->gym_id = str_replace('.', '_', $data->gym_id);
+				$entries[] = $data;
+			}
+
+			foreach ($entries as $idx => $entry) {
+				$entry->total_cp_diff = 0;
+				$entry->only_cp_changed = true;
+				if ($idx < count($entries) - 1) {
+					$next_entry = $entries[$idx+1];
+					$entry->total_cp_diff = $entry->total_cp - $next_entry->total_cp;
+					$entry->class = $entry->total_cp_diff > 0 ? 'gain' : ($entry->total_cp_diff < 0 ? 'loss' : '');
+					$entry_pokemon = preg_split('/,/', $entry->pokemon_uids, null, PREG_SPLIT_NO_EMPTY);
+					$next_entry_pokemon = preg_split('/,/', $next_entry->pokemon_uids, null, PREG_SPLIT_NO_EMPTY);
+					$new_pokemon = array_diff($entry_pokemon, $next_entry_pokemon);
+					$old_pokemon = array_diff($next_entry_pokemon, $entry_pokemon);
+					foreach ($new_pokemon as $pkm) {
+						$entry->pokemon[$pkm]->class = 'new';
+					}
+					foreach ($old_pokemon as $pkm) {
+						$next_entry->pokemon[$pkm]->class = 'old';
+					}
+					if ($entry->team_id != $next_entry->team_id|| $entry->pokemon_uids != $next_entry->pokemon_uids) {
+						$entry->only_cp_changed = false;
+					}
+				}
+				unset($entry->pokemon_uids);
+			}
+
+			if (count($entries) > 10) { array_pop($entries); }
+		}
+
+		$json = array();
+		$json['entries'] = $entries;
+		$locale = array();
+		$json['locale'] = $locale;
+
+		header('Content-Type: application/json');
+		echo json_encode($json);
+
+		break;
+
 
 	case 'pokemon_slider_init':
 		$req = "SELECT MIN(disappear_time) AS min, MAX(disappear_time) AS max FROM pokemon";

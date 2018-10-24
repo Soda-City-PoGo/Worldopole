@@ -5,6 +5,9 @@
 
 $variables = SYS_PATH.'/core/json/variables.json';
 $config = json_decode(file_get_contents($variables));
+    
+$pokedex_tree_file = file_get_contents(SYS_PATH.'/core/json/pokedex.tree.json');
+$trees = json_decode($pokedex_tree_file);
 
 if (!defined('SYS_PATH')) {
 	echo 'Error: config.php does not exist or failed to load.<br>';
@@ -106,21 +109,32 @@ if (!empty($page)) {
 			}
 
 
-			$pokemon			= new stdClass();
-			$pokemon			= $pokemons->pokemon->$pokemon_id;
+			$pokemon = new stdClass();
+			$pokemon = $pokemons->pokemon->$pokemon_id;
 			$pokemon->id = $pokemon_id;
 
+			// Gen
+			// ----
+
+			$gen = generation($pokemon_id);
+			$pokemon->gen = $gen[0]." (".$gen[1].")";
 
 			// Some math
 			// ----------
 
-			$pokemon->max_cp_percent 	= percent(3670, $pokemon->max_cp);
-			$pokemon->max_hp_percent 	= percent(411, $pokemon->max_hp);
+			$pokemon->max_cp_percent = percent(4548, $pokemon->max_cp); //Slaking #289
+			$pokemon->max_hp_percent = percent(415, $pokemon->max_hp); //Blissey #242
+
+
+			// Set tree
+			// ----------
+
+			$candy_id = $pokemon->candy_id;
+			$pokemon->tree = $trees->$candy_id;
 
 
 			// Get Dabase results
 			//-------------------
-
 
 			// Total gym protected
 
@@ -138,24 +152,6 @@ if (!empty($page)) {
 				$pokemon->spawns_per_day = $pokemon->per_day;
 			}
 
-			// Last seen
-
-			$req = "SELECT disappear_time, (CONVERT_TZ(disappear_time, '+00:00', '".$time_offset."')) AS disappear_time_real, latitude, longitude
-						FROM pokemon
-						WHERE pokemon_id = '".$pokemon_id."'
-						ORDER BY disappear_time DESC
-						LIMIT 0,1";
-			$result = $mysqli->query($req);
-			$data = $result->fetch_object();
-
-			if (isset($data)) {
-				$last_spawn = $data;
-
-				$pokemon->last_seen = strtotime($data->disappear_time_real);
-				$pokemon->last_position = new stdClass();
-				$pokemon->last_position->latitude = $data->latitude;
-				$pokemon->last_position->longitude = $data->longitude;
-			}
 
 			// Related Pokemons
 			// ----------------
@@ -169,7 +165,7 @@ if (!empty($page)) {
 			foreach ($pokemons->pokemon as $pokeid => $test_pokemon) {
 				if (!empty($test_pokemon->types)) {
 					foreach ($test_pokemon->types as $type) {
-						if (in_array($type, $types)) {
+						if (in_array($type, $types) && $pokeid <= $config->system->max_pokemon) {
 							if (!in_array($pokeid, $related)) {
 								$related[] = $pokeid;
 							}
@@ -247,9 +243,9 @@ if (!empty($page)) {
 
 			for ($i = 1; $i <= $max; $i++) {
 				$pokedex->$i = new stdClass();
-				$pokedex->$i->id 			= $i;
+				$pokedex->$i->id = $i;
 				$pokedex->$i->permalink = 'pokemon/'.$i;
-				$pokedex->$i->img			= 'core/pokemons/'.$i.$config->system->pokeimg_suffix;
+				$pokedex->$i->img = $pokemons->pokemon->$i->img;
 				$pokedex->$i->name = $pokemons->pokemon->$i->name;
 				$pokedex->$i->spawn = ($pokemons->pokemon->$i->spawn_count > 0) ? 1 : 0;
 				$pokedex->$i->spawn_count = $pokemons->pokemon->$i->spawn_count;
@@ -392,8 +388,6 @@ else {
 	$req = "SELECT COUNT(*) AS total FROM pokemon WHERE disappear_time >= UTC_TIMESTAMP()";
 	$result = $mysqli->query($req);
 	$data = $result->fetch_object();
-
-
 	$home->pokemon_now = $data->total;
 
 
@@ -403,8 +397,16 @@ else {
 	$req = "SELECT COUNT(*) AS total FROM pokestop WHERE lure_expiration >= UTC_TIMESTAMP()";
 	$result = $mysqli->query($req);
 	$data = $result->fetch_object();
-
 	$home->pokestop_lured = $data->total;
+
+
+	// Active Raids
+	// -----------
+
+	$req = "SELECT COUNT(*) AS total FROM raid WHERE start <= UTC_TIMESTAMP AND  end >= UTC_TIMESTAMP()";
+	$result = $mysqli->query($req);
+	$data = $result->fetch_object();
+	$home->active_raids = $data->total;
 
 
 	// Gyms
@@ -413,7 +415,6 @@ else {
 	$req = "SELECT COUNT(DISTINCT(gym_id)) AS total FROM gym";
 	$result = $mysqli->query($req);
 	$data = $result->fetch_object();
-
 	$home->gyms = $data->total;
 
 
